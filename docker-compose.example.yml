@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  movies-sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: movies-sqlserver
+    environment:
+      SA_PASSWORD: "MySecurePassword123!"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "14333:1433"
+    volumes:
+      - movies-sqlserver-data:/var/opt/mssql
+    restart: always
+
+volumes:
+  movies-sqlserver-data:

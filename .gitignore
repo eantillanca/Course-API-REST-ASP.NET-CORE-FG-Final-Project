@@ -1,0 +1,48 @@
+#binarios
+bin/
+obj/
+
+#cache
+/_ReSharper.Caches/
+
+docker-compose.yml
+
+# Rider
+.idea/
+riderModule.iml
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+
+# NuGet packages folder
+packages/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.pid
+*.gz
+*.swp
+
+# Publish
+.publish/
+
+# Local Development certificates
+*.pfx
+*.p12
+
+# Environment-specific configuration
+appsettings.*.json
+
+# local storage files
+wwwroot/localStorage/
