@@ -35,7 +35,12 @@ public class MoviesController: ControllerBase
     [HttpGet("{id:int}", Name = "getMovieById")]
     public async Task<ActionResult<MovieDto>> GetById(int id)
     {
-        var movieDb = await _context.Movies.FirstOrDefaultAsync(x => x.Id == id);
+        var movieDb = await _context.Movies
+            .Include(x => x.MoviesActors)
+                .ThenInclude(ma => ma.Actor) 
+            .Include(x => x.MoviesGenres)
+                .ThenInclude(mg => mg.Genre) 
+            .FirstOrDefaultAsync(x => x.Id == id);
         if (movieDb == null)
         {
             return NotFound();
@@ -61,17 +66,28 @@ public class MoviesController: ControllerBase
             }
         }
         
+        AsignActorOrder(movieDb);
+        
         _context.Add(movieDb);
         await _context.SaveChangesAsync();
-        var movieDto = _mapper.Map<MovieDto>(movieDb);
+        
+        var movieWithRelations = await _context.Movies
+            .Include(x => x.MoviesGenres).ThenInclude(mg => mg.Genre)
+            .Include(x => x.MoviesActors).ThenInclude(ma => ma.Actor)
+            .FirstOrDefaultAsync(x => x.Id == movieDb.Id);
 
+        var movieDto = _mapper.Map<MovieDto>(movieWithRelations);
+        
         return new CreatedAtRouteResult("getMovieById", new { id = movieDto.Id}, movieDto);
     }
     
     [HttpPut("{id:int}", Name = "updateMovieById")]
     public async Task<ActionResult> Put(int id, [FromForm] MovieCreateDto movieCreateDto)
     {
-        var movieDb = await _context.Movies.FirstOrDefaultAsync(x => x.Id == id);
+        var movieDb = await _context.Movies
+            .Include(x => x.MoviesActors)
+            .Include(x => x.MoviesGenres)
+            .FirstOrDefaultAsync(x => x.Id == id);
         
         if (movieDb == null)
         {
@@ -91,6 +107,8 @@ public class MoviesController: ControllerBase
                 movieDb.Poster = await _fileStorage.UpdateFile(content, extension, _folder, movieDb.Poster, movieCreateDto.Poster.ContentType);
             }
         }
+        
+        AsignActorOrder(movieDb);
         
         _context.Entry(movieDb).State = EntityState.Modified;
         await _context.SaveChangesAsync();
@@ -142,5 +160,16 @@ public class MoviesController: ControllerBase
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    private void AsignActorOrder(Movie movie)
+    {
+        if (movie.MoviesActors != null)
+        {
+            for (int i = 0; i < movie.MoviesActors.Count; i++)
+            {
+                movie.MoviesActors[i].Order = i;
+            }
+        }
     }
 }

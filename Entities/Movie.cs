@@ -11,4 +11,7 @@ public class Movie
     public bool InCinema { get; set; }
     public DateTime ReleaseDate { get; set; }
     public string Poster { get; set; }
+
+    public List<MovieGenre> MoviesGenres { get; set; }
+    public List<MovieActor> MoviesActors { get; set; }
 }

@@ -20,7 +20,10 @@ public class Startup(IConfiguration configuration)
             options.UseSqlServer(connectionString));
         services.AddAutoMapper(typeof(Startup));
         services.AddControllers()
-            .AddNewtonsoftJson();
+            .AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+            });
         services.AddEndpointsApiExplorer();
         services.AddTransient<IFileStorage, LocalStorageService>();
         services.AddHttpContextAccessor();

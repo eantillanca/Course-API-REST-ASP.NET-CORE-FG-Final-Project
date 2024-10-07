@@ -10,4 +10,6 @@ public class Actor
     public string Name { get; set; }
     public DateTime DateOfBirth { get; set; }
     public string Photo { get; set; }
+
+    public List<MovieActor> MoviesActors { get; set; }
 }

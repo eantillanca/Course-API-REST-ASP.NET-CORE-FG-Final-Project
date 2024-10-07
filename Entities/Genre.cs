@@ -8,4 +8,6 @@ public class Genre
     [Required]
     [StringLength(40)]
     public string Name { get; set; }
+
+    public List<MovieGenre> MoviesGenres { get; set; }
 }
