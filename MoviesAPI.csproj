@@ -25,6 +25,7 @@
       <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.0.2" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
       <PackageReference Include="RestSharp.Serializers.NewtonsoftJson" Version="112.0.0" />
+      <PackageReference Include="System.Linq.Dynamic.Core" Version="1.4.5" />
       <PackageReference Include="System.Runtime.Serialization.Json" Version="4.3.0" />
     </ItemGroup>
 

@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MoviesAPI.Dtos;
 using MoviesAPI.Entities;
+using MoviesAPI.Helpers;
 using MoviesAPI.Interfaces;
+using System.Linq.Dynamic.Core;
 
 namespace MoviesAPI.Controllers;
 
@@ -15,21 +17,46 @@ public class MoviesController: ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
     private readonly IFileStorage _fileStorage;
+    private readonly ILogger<MoviesController> _logger;
     private readonly string _folder = "movies";
 
-    public MoviesController(ApplicationDbContext context, IMapper mapper, IFileStorage fileStorage)
+    public MoviesController(ApplicationDbContext context, IMapper mapper, IFileStorage fileStorage,
+        ILogger<MoviesController> logger)
     {
         _context = context;
         _mapper = mapper;
         _fileStorage = fileStorage;
+        _logger = logger;
     }
     
     [HttpGet]
-    public async Task<ActionResult<List<MovieDto>>> Get()
+    public async Task<ActionResult<MoviesIndexDto>> Get()
     {
-        var moviesDb = await _context.Movies.ToListAsync();
-        var moviesDtos = _mapper.Map<List<MovieDto>>(moviesDb);
-        return Ok(moviesDtos);
+        var top = 20;
+        var today = DateTime.Today;
+
+        var nextPremiers = await _context.Movies
+            .Include(x => x.MoviesActors)
+                .ThenInclude(ma => ma.Actor) 
+            .Include(x => x.MoviesGenres)
+                .ThenInclude(mg => mg.Genre) 
+            .Where(x => x.ReleaseDate > today)
+            .Take(top)
+            .ToListAsync();
+        var inCinema = await _context.Movies
+            .Include(x => x.MoviesActors)
+                .ThenInclude(ma => ma.Actor) 
+            .Include(x => x.MoviesGenres)
+                .ThenInclude(mg => mg.Genre) 
+            .Where(x => x.InCinema == true)
+            .Take(top)
+            .ToListAsync();
+
+        var result = new MoviesIndexDto();
+        result.NextPremiers = _mapper.Map<List<MovieDto>>(nextPremiers);
+        result.InCinema = _mapper.Map<List<MovieDto>>(inCinema);
+
+        return Ok(result);
     }
     
     [HttpGet("{id:int}", Name = "getMovieById")]
@@ -47,6 +74,66 @@ public class MoviesController: ControllerBase
         }
         var moviesDto = _mapper.Map<MovieDto>(movieDb);
         return Ok(moviesDto);
+    }
+
+    [HttpGet("filter")]
+    public async Task<ActionResult<List<MovieDto>>> Filter([FromQuery] MoviesFilterDto moviesFilterDto)
+    {
+        var moviesQueriable = _context.Movies
+            .Include(x => x.MoviesGenres).ThenInclude(mg => mg.Genre)
+            .Include(x => x.MoviesActors).ThenInclude(ma => ma.Actor)
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(moviesFilterDto.Title))
+        {
+            moviesQueriable = moviesQueriable.Where(x => x.Title.Contains(moviesFilterDto.Title));
+        }
+
+        if (moviesFilterDto.InCinema)
+        {
+            moviesQueriable = moviesQueriable.Where(x => x.InCinema);
+        }
+
+        if (moviesFilterDto.NextPremiers)
+        {
+            moviesQueriable = moviesQueriable.Where(x => x.ReleaseDate > DateTime.Today);
+        }
+
+        if (moviesFilterDto.GenreId != 0)
+        {
+            moviesQueriable = moviesQueriable
+                .Where(x => x.MoviesGenres.Select(y => y.GenreId)
+                    .Contains(moviesFilterDto.GenreId));
+        }
+
+        if (!string.IsNullOrEmpty(moviesFilterDto.OrderBy))
+        {
+            try
+            {
+                var orderType = moviesFilterDto.OrderType switch
+                {
+                    "asc" => "ascending",
+                    "desc" => "descending",
+                    _ => "ascending"
+                };
+                
+                moviesQueriable = moviesQueriable.OrderBy($"{moviesFilterDto.OrderBy} {orderType}");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Order by {moviesFilterDto.OrderBy} field not found.");
+            }
+        }
+        
+        if (moviesFilterDto.ElementsPerPage > 0)
+        {
+            await HttpContext.InsertPaginationParams(moviesQueriable, moviesFilterDto.ElementsPerPage);
+            moviesQueriable = moviesQueriable.Paginate(moviesFilterDto.Pagination);
+        }
+
+        var movies = await moviesQueriable.ToListAsync();
+        
+        return _mapper.Map<List<MovieDto>>(movies);
     }
     
     [HttpPost]
