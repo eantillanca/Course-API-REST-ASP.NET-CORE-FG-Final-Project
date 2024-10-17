@@ -12,7 +12,7 @@ namespace MoviesAPI.Controllers;
 
 [ApiController]
 [Route("api/movies")]
-public class MoviesController: ControllerBase
+public class MoviesController: CustomBaseController
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
@@ -21,7 +21,7 @@ public class MoviesController: ControllerBase
     private readonly string _folder = "movies";
 
     public MoviesController(ApplicationDbContext context, IMapper mapper, IFileStorage fileStorage,
-        ILogger<MoviesController> logger)
+        ILogger<MoviesController> logger): base(context, mapper)
     {
         _context = context;
         _mapper = mapper;
@@ -121,7 +121,7 @@ public class MoviesController: ControllerBase
             }
             catch (Exception e)
             {
-                _logger.LogError($"Order by {moviesFilterDto.OrderBy} field not found.");
+                _logger.LogError($"Order by {moviesFilterDto.OrderBy} field not found. Ex: {e.Message}");
             }
         }
         
@@ -206,47 +206,13 @@ public class MoviesController: ControllerBase
     [HttpPatch("{id:int}", Name = "patchMovieById")]
     public async Task<ActionResult> Patch(int id, [FromBody] JsonPatchDocument<MoviePatchDto> patchDocument)
     {
-        if (patchDocument == null) { return BadRequest(); }
-
-        var movieDb = await _context.Movies.FirstOrDefaultAsync(x => x.Id == id);
-        if (movieDb == null) { return NotFound(); }
-
-        var movieDto = _mapper.Map<MoviePatchDto>(movieDb);
-        
-        patchDocument.ApplyTo(movieDto, ModelState);
-
-        var isValid = TryValidateModel(movieDto);
-
-        if (!isValid)
-        {
-            return BadRequest(ModelState);
-        }
-
-        _mapper.Map(movieDto, movieDb);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
+        return await Patch<Movie, MoviePatchDto>(id, patchDocument);
     }
     
     [HttpDelete("{id:int}", Name = "deleteMovieById")]
     public async Task<ActionResult> Delete(int id)
     {
-        var movieDb = await _context.Movies.FirstOrDefaultAsync(x => x.Id == id);
-        
-        if (movieDb == null)
-        {
-            return NotFound();
-        }
-
-        if (movieDb.Poster != null)
-        {
-            await _fileStorage.DeleteFile(movieDb.Poster, _folder);
-        }
-
-        _context.Remove(movieDb);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
+        return await Delete<Movie>(id);
     }
 
     private void AsignActorOrder(Movie movie)

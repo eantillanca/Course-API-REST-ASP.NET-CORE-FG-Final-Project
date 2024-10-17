@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using MoviesAPI.Interfaces;
 
 namespace MoviesAPI.Entities;
 
-public class Actor
+public class Actor: IId
 {
     public int Id { get; set; }
     [Required]
