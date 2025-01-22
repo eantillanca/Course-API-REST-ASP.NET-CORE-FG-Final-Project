@@ -16,6 +16,8 @@ public class ApplicationDbContext: DbContext
             .HasKey(x => new { x.MovieId, x.ActorId });
         modelBuilder.Entity<MovieGenre>()
             .HasKey(x => new { x.MovieId, x.GenreId });
+        modelBuilder.Entity<MovieCinemaRoom>()
+            .HasKey(x => new { x.MovieId, x.CinemaRoomId });
     }
 
     public DbSet<Genre> Genres { get; set; }
@@ -23,4 +25,6 @@ public class ApplicationDbContext: DbContext
     public DbSet<Movie> Movies { get; set; }
     public DbSet<MovieGenre> MoviesGenres { get; set; }
     public DbSet<MovieActor> MoviesActors { get; set; }
+    public DbSet<CinemaRoom> CinemaRooms { get; set; }
+    public DbSet<MovieCinemaRoom> MoviesCinemaRooms { get; set; }
 }   

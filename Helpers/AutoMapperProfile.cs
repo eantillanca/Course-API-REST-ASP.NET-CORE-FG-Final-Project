@@ -12,6 +12,10 @@ public class AutoMapperProfile: Profile
         CreateMap<Genre, GenreDto>().ReverseMap();
         CreateMap<GenreCreateDto, Genre>();
         
+        // CinemaRoom
+        CreateMap<CinemaRoom, CinemaRoomDto>().ReverseMap();
+        CreateMap<CinemaRoomCreateDto, CinemaRoom>();
+        
         // Actor
         CreateMap<Actor, ActorDto>().ReverseMap();
         CreateMap<ActorCreateDto, Actor>()

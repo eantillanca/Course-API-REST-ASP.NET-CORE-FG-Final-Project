@@ -15,4 +15,5 @@ public class Movie: IId
 
     public List<MovieGenre> MoviesGenres { get; set; }
     public List<MovieActor> MoviesActors { get; set; }
+    public List<MovieCinemaRoom> MoviesCinemaRooms { get; set; }
 }
