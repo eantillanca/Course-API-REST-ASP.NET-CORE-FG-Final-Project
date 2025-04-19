@@ -3,7 +3,7 @@ using MoviesAPI.Entities;
 
 namespace MoviesAPI;
 
-public class ApplicationDbContext: DbContext
+public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions options) : base(options)
     {
@@ -18,6 +18,12 @@ public class ApplicationDbContext: DbContext
             .HasKey(x => new { x.MovieId, x.GenreId });
         modelBuilder.Entity<MovieCinemaRoom>()
             .HasKey(x => new { x.MovieId, x.CinemaRoomId });
+        modelBuilder.Entity<CinemaRoom>()
+            .Property(x => x.Location)
+            .HasColumnType("geography");
+        modelBuilder.Entity<CinemaRoom>()
+            .HasIndex(x => x.Location)
+            .HasDatabaseName("IX_CinemaRoom_Location");
     }
 
     public DbSet<Genre> Genres { get; set; }
@@ -27,4 +33,4 @@ public class ApplicationDbContext: DbContext
     public DbSet<MovieActor> MoviesActors { get; set; }
     public DbSet<CinemaRoom> CinemaRooms { get; set; }
     public DbSet<MovieCinemaRoom> MoviesCinemaRooms { get; set; }
-}   
+}

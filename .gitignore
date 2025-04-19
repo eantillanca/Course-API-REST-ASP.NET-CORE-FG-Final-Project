@@ -46,3 +46,5 @@ appsettings.*.json
 
 # local storage files
 wwwroot/localStorage/
+
+env.sh
