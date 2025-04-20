@@ -1,9 +1,10 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MoviesAPI.Entities;
 
 namespace MoviesAPI;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext
 {
     public ApplicationDbContext(DbContextOptions options) : base(options)
     {
@@ -24,6 +25,8 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<CinemaRoom>()
             .HasIndex(x => x.Location)
             .HasDatabaseName("IX_CinemaRoom_Location");
+
+        base.OnModelCreating(modelBuilder);
     }
 
     public DbSet<Genre> Genres { get; set; }
