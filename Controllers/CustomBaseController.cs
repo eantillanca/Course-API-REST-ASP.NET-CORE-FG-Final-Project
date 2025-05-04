@@ -9,7 +9,7 @@ using MoviesAPI.Interfaces;
 
 namespace MoviesAPI.Controllers;
 
-public class CustomBaseController: ControllerBase
+public class CustomBaseController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
@@ -19,14 +19,20 @@ public class CustomBaseController: ControllerBase
         _context = context;
         _mapper = mapper;
     }
-    
+
     protected async Task<List<TDto>> Get<TEntity, TDto>
         (PaginationDto paginationDto) where TEntity : class
     {
         var queryable = _context.Set<TEntity>().AsQueryable();
+        return await Get<TEntity, TDto>(paginationDto, queryable);
+    }
+
+    protected async Task<List<TDto>> Get<TEntity, TDto>
+        (PaginationDto paginationDto, IQueryable<TEntity> queryable) where TEntity : class
+    {
         await HttpContext.InsertPaginationParams(queryable, paginationDto.ElementsPerPage);
         var entity = await queryable.Paginate(paginationDto).ToListAsync();
-            
+
         var dtos = _mapper.Map<List<TDto>>(entity);
 
         return dtos;
@@ -59,9 +65,9 @@ public class CustomBaseController: ControllerBase
         _context.Add(entity);
         await _context.SaveChangesAsync();
         var dto = _mapper.Map<TReadDto>(entity);
-        return new CreatedAtRouteResult(routeName, new { id = entity.Id}, dto);
+        return new CreatedAtRouteResult(routeName, new { id = entity.Id }, dto);
     }
-    
+
     protected async Task<ActionResult> Put<TCreateDto, TEntity>
         (int id, TCreateDto createDto) where TEntity : class, IId
     {
@@ -70,16 +76,16 @@ public class CustomBaseController: ControllerBase
         {
             return NotFound();
         }
-        
+
         var entity = _mapper.Map<TEntity>(createDto);
         entity.Id = id;
-        
+
         _context.Entry(entity).State = EntityState.Modified;
         await _context.SaveChangesAsync();
-        
-        return NoContent();   
+
+        return NoContent();
     }
-    
+
     protected async Task<ActionResult> Patch<TEntity, TPatchDto>(int id, JsonPatchDocument<TPatchDto> patchDocument)
         where TPatchDto : class
         where TEntity : class, IId
@@ -90,7 +96,7 @@ public class CustomBaseController: ControllerBase
         if (entity == null) { return NotFound(); }
 
         var dto = _mapper.Map<TPatchDto>(entity);
-        
+
         patchDocument.ApplyTo(dto, ModelState);
 
         var isValid = TryValidateModel(dto);

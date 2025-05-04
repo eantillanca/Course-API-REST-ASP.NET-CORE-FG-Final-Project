@@ -36,4 +36,5 @@ public class ApplicationDbContext : IdentityDbContext
     public DbSet<MovieActor> MoviesActors { get; set; }
     public DbSet<CinemaRoom> CinemaRooms { get; set; }
     public DbSet<MovieCinemaRoom> MoviesCinemaRooms { get; set; }
+    public DbSet<Review> Reviews { get; set; }
 }
