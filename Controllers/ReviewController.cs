@@ -5,10 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MoviesAPI.Dtos;
 using MoviesAPI.Entities;
+using MoviesAPI.Helpers;
 
 namespace MoviesAPI.Controllers;
 
 [ApiController]
+[ServiceFilter(typeof(MovieExistsAttribute))]
 [Route("api/movie/{movieId:int}/review")]
 public class ReviewController : CustomBaseController
 {
@@ -27,7 +29,7 @@ public class ReviewController : CustomBaseController
         _logger = logger;
     }
 
-    [HttpGet]
+    [HttpGet(Name = nameof(Get))]
     public async Task<ActionResult<List<ReviewDto>>> Get(
         int movieId,
         [FromQuery] PaginationDto paginationDto
@@ -46,11 +48,6 @@ public class ReviewController : CustomBaseController
         [FromBody] ReviewCreateDto reviewCreateDto
     )
     {
-        var movieExists = await _context.Movies.AnyAsync(x => x.Id == movieId);
-        if (!movieExists)
-        {
-            return NotFound();
-        }
 
         var userId = HttpContext.User.Claims
             .FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
@@ -88,12 +85,6 @@ public class ReviewController : CustomBaseController
         [FromBody] ReviewCreateDto reviewCreateDto
     )
     {
-        var movieExists = await _context.Movies.AnyAsync(x => x.Id == movieId);
-        if (!movieExists)
-        {
-            return NotFound();
-        }
-
         var userId = HttpContext.User.Claims
             .FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         if (userId == null)
@@ -127,12 +118,6 @@ public class ReviewController : CustomBaseController
         int movieId
     )
     {
-        var movieExists = await _context.Movies.AnyAsync(x => x.Id == movieId);
-        if (!movieExists)
-        {
-            return NotFound();
-        }
-
         var userId = HttpContext.User.Claims
             .FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         if (userId == null)

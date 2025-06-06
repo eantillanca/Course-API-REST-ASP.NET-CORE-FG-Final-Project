@@ -77,6 +77,8 @@ public class Startup(IConfiguration configuration)
             return mapperConfig.CreateMapper();
         });
 
+        services.AddScoped<MovieExistsAttribute>();
+
         services.AddAutoMapper(typeof(Startup));
         services.AddControllers()
             .AddNewtonsoftJson(options =>
