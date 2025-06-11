@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <MSTest>
+    <!-- Captura todo lo que salga por Console.WriteLine o TestContext.WriteLine -->
+    <CaptureConsoleOutput>true</CaptureConsoleOutput>
+  </MSTest>
+</RunSettings>
