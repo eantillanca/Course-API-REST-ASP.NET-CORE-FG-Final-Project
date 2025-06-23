@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   movies-sqlserver:
-    image: mcr.microsoft.com/mssql/server:2019-latest
+    image: mcr.microsoft.com/mssql/server:2019-CU30-ubuntu-20.04
     container_name: movies-sqlserver
     environment:
       SA_PASSWORD: "MySecurePassword123!"

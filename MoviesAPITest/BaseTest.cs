@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Security.Claims;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MoviesAPI;
 using MoviesAPI.Helpers;
 using NetTopologySuite;
-using NetTopologySuite.Geometries;
 
 namespace MoviesAPITest;
 
@@ -31,5 +29,21 @@ public class BaseTest
         });
 
         return config.CreateMapper();
+    }
+
+    protected ControllerContext BuildControllerContext()
+    {
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "test-user-id"),
+            new Claim(ClaimTypes.Name, "test-user"),
+            new Claim(ClaimTypes.Email, "test@example.com"),
+            new Claim("isAdmin", "1")
+        }));
+
+        return new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext() { User = user }
+        };
     }
 }
