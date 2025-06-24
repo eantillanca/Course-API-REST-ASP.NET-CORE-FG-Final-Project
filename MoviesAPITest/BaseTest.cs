@@ -1,14 +1,17 @@
 using System.Security.Claims;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using MoviesAPI;
 using MoviesAPI.Helpers;
 using NetTopologySuite;
+using System.Linq;
 
 namespace MoviesAPITest;
 
@@ -59,21 +62,28 @@ public class BaseTest
         var factory = new WebApplicationFactory<Startup>();
         factory = factory.WithWebHostBuilder(builder =>
         {
+            builder.UseEnvironment("Test");
             builder.ConfigureServices(services =>
             {
-                // Remove existing ApplicationDbContext registration
-                var descriptorDbContext = services.SingleOrDefault(
-                    d => d.ServiceType == typeof(ApplicationDbContext));
-                if (descriptorDbContext != null)
+                var descriptors = services
+                    .Where(d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>))
+                    .ToList();
+                foreach (var d in descriptors)
                 {
-                    services.Remove(descriptorDbContext);
+                    services.Remove(d);
                 }
 
-                // Add the in-memory database context
                 services.AddDbContext<ApplicationDbContext>(options =>
                 {
-                    options.UseInMemoryDatabase(databaseName: dbName);
+                    options.UseInMemoryDatabase(dbName);
                 });
+
+                var sp = services.BuildServiceProvider();
+                using (var scope = sp.CreateScope())
+                {
+                    var ctx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    ctx.Database.EnsureCreated();
+                }
 
                 if (ignoreSecurity)
                 {
