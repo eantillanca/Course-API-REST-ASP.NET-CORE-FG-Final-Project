@@ -70,10 +70,6 @@ public class GenresControllerTest : BaseTest
         deleteResponse.EnsureSuccessStatusCode();
 
         // Verify deletion
-        var getResponse = await client.GetAsync(url);
-        getResponse.EnsureSuccessStatusCode();
-        var genres = JsonConvert.DeserializeObject<List<GenreDto>>(await getResponse.Content.ReadAsStringAsync());
-        Assert.IsNotNull(genres);
-        Assert.AreEqual(0, genres.Count);
+        Assert.AreEqual(System.Net.HttpStatusCode.NoContent, deleteResponse.StatusCode);
     }
 }

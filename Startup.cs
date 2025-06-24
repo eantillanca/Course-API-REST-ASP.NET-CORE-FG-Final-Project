@@ -103,6 +103,19 @@ public class Startup(IConfiguration configuration)
         app.UseAuthentication();
         app.UseAuthorization();
 
+        app.Use(async (context, next) =>
+        {
+            // before the request is processed
+            logger.LogInformation("Processing request: {Method} {Path}", context.Request.Method, context.Request.Path);
+
+            // Call the next middleware in the pipeline
+            await next.Invoke();
+
+            // after the request is processed
+            logger.LogInformation("Request processed successfully: {StatusCode}", context.Response.StatusCode);
+
+        });
+
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
